@@ -1,10 +1,10 @@
-# CLAUDE.md — BKOS-Apps
+# CLAUDE.md — BKOS-Brug
 
 Flutter app voor de BKOS Boordcomputer (Android / iOS / Windows / Web).
 Verbindt via WebSocket (WiFi) of BLE met de BKOS-NUI firmware.
 
 **BKOS-NUI firmware repo:** `https://github.com/brennyc86/BKOS-NUI`
-**Apps repo:** `https://github.com/brennyc86/BKOS-Apps` *(aan te maken)*
+**Brug repo:** `https://github.com/brennyc86/BKOS-Brug`
 
 ---
 
