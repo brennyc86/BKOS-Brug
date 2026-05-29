@@ -1,5 +1,5 @@
-name: bkos_app
-description: BKOS Boordcomputer App — IO paneel en netwerk beheer
+name: bkos_brug
+description: BKOS Brug — IO paneel en netwerk voor Android, iOS, Windows en web
 publish_to: 'none'
 version: 0.1.0+1
 

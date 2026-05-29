@@ -1,0 +1,19 @@
+android {
+    namespace "nl.bkos.brug"
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "nl.bkos.brug"
+        minSdk 21
+        targetSdk 34
+        versionCode 1
+        versionName "0.1.0"
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.debug
+            minifyEnabled false
+        }
+    }
+}

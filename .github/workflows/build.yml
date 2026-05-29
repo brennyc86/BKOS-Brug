@@ -1,0 +1,101 @@
+name: Build BKOS Brug
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # ─── Android APK ─────────────────────────────────────────────────────────────
+  android:
+    name: Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.6'
+          channel: stable
+          cache: true
+
+      - name: Dependencies installeren
+        run: flutter pub get
+        working-directory: bkos_brug
+
+      - name: Bouwen (debug APK)
+        run: flutter build apk --debug
+        working-directory: bkos_brug
+
+      - name: APK uploaden als artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bkos-brug-android
+          path: bkos_brug/build/app/outputs/flutter-apk/app-debug.apk
+          retention-days: 30
+
+  # ─── Web ─────────────────────────────────────────────────────────────────────
+  web:
+    name: Web Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.6'
+          channel: stable
+          cache: true
+
+      - name: Dependencies installeren
+        run: flutter pub get
+        working-directory: bkos_brug
+
+      - name: Web bouwen
+        run: flutter build web --release --base-href /
+        working-directory: bkos_brug
+
+      - name: Web build uploaden als artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bkos-brug-web
+          path: bkos_brug/build/web/
+          retention-days: 30
+
+  # ─── Windows ─────────────────────────────────────────────────────────────────
+  windows:
+    name: Windows EXE
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.6'
+          channel: stable
+          cache: true
+
+      - name: Dependencies installeren
+        run: flutter pub get
+        working-directory: bkos_brug
+
+      - name: Windows bouwen
+        run: flutter build windows --release
+        working-directory: bkos_brug
+
+      - name: Windows build zippen
+        run: Compress-Archive -Path bkos_brug/build/windows/x64/runner/Release/* -DestinationPath bkos-brug-windows.zip
+        shell: pwsh
+
+      - name: Windows build uploaden als artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bkos-brug-windows
+          path: bkos-brug-windows.zip
+          retention-days: 30

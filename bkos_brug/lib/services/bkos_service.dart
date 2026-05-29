@@ -9,7 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../models/bkos_model.dart';
-import 'ble_service.dart'; // eigen BLE wrapper (niet op web)
+// Conditionele import: stub op web, echte implementatie op native platforms
+import 'ble_service_stub.dart' if (dart.library.io) 'ble_service.dart';
 
 class BkosService extends ChangeNotifier {
   // Verbindingstoestand
