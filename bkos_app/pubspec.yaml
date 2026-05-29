@@ -1,0 +1,40 @@
+name: bkos_app
+description: BKOS Boordcomputer App — IO paneel en netwerk beheer
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.16.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  provider: ^6.1.1
+
+  # Navigatie
+  go_router: ^13.0.0
+
+  # WebSocket verbinding
+  web_socket_channel: ^2.4.0
+
+  # BLE (niet beschikbaar op web platform)
+  flutter_blue_plus: ^1.29.4
+
+  # Lokale opslag (laatste verbinding onthouden)
+  shared_preferences: ^2.2.2
+
+  # Iconen
+  flutter_svg: ^2.0.9
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/icons/
