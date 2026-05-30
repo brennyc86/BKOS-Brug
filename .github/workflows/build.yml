@@ -24,7 +24,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.6'
+          flutter-version: '3.24.3'
           channel: stable
           cache: true
 
@@ -36,6 +36,24 @@ jobs:
           cp bkos_brug/pubspec.yaml temp/pubspec.yaml
           cp bkos_brug/android/app/src/main/AndroidManifest.xml \
              temp/android/app/src/main/AndroidManifest.xml
+
+      - name: Gradle workaround voor flutter_blue_plus_android
+        # flutter_blue_plus_android gebruikt android.flutter.* properties die in de
+        # nieuwe Kotlin DSL Gradle setup niet meer automatisch beschikbaar zijn in
+        # subprojecten. We voegen ze toe als ext-properties in het root build script.
+        run: |
+          cat >> temp/android/build.gradle.kts << 'EOF'
+
+          // Maak flutter SDK versies beschikbaar voor plugin subprojecten (workaround)
+          subprojects {
+            project.extensions.extraProperties["flutter"] = mapOf(
+              "compileSdkVersion" to 34,
+              "minSdkVersion"     to 21,
+              "targetSdkVersion"  to 34,
+            )
+          }
+          EOF
+        continue-on-error: true
 
       - name: Dependencies installeren
         run: flutter pub get
@@ -61,7 +79,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.6'
+          flutter-version: '3.24.3'
           channel: stable
           cache: true
 
@@ -98,7 +116,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.6'
+          flutter-version: '3.24.3'
           channel: stable
           cache: true
 
@@ -138,7 +156,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.6'
+          flutter-version: '3.24.3'
           channel: stable
           cache: true
 

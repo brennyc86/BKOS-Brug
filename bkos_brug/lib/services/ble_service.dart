@@ -41,7 +41,8 @@ class BleService {
   Future<bool> verbind(String deviceId) async {
     try {
       _device = BluetoothDevice.fromId(deviceId);
-      await _device!.connect(timeout: const Duration(seconds: 10));
+      // License.nonprofit = gratis voor persoonlijk/non-commercieel gebruik
+      await _device!.connect(license: License.nonprofit, timeout: const Duration(seconds: 10));
 
       final services = await _device!.discoverServices();
       final svc = services.firstWhere(
