@@ -77,11 +77,16 @@ jobs:
           retention-days: 30
       - name: Deployen naar GitHub Pages
         if: github.ref == 'refs/heads/main'
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          folder: temp/build/web
-          branch: gh-pages
-          clean: true
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          cd temp/build/web
+          git init
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+          git add -A
+          git commit -m "Deploy web build"
+          git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/brennyc86/BKOS-Brug.git" HEAD:gh-pages
 
   windows:
     name: Windows EXE
