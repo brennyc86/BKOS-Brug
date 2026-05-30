@@ -6,176 +6,181 @@ on:
   pull_request:
     branches: [ main ]
 
-# Strategie: flutter create genereert de platform-boilerplate (Gradle, Xcode etc.),
-# daarna kopiëren we onze broncode erin. Zo heeft elk platform de juiste scaffolding.
-
 jobs:
-  # ─── Android APK ─────────────────────────────────────────────────────────────
   android:
     name: Android APK
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.24.3'
           channel: stable
           cache: true
-
-      - name: Project scaffolden + broncode kopiëren
+      - name: Scaffolden + broncode kopiëren
         run: |
           flutter create --org nl.bkos --project-name bkos_brug --platforms android temp
-          rm -rf temp/lib
-          cp -r bkos_brug/lib temp/lib
+          rm -rf temp/lib && cp -r bkos_brug/lib temp/lib
           cp bkos_brug/pubspec.yaml temp/pubspec.yaml
-          cp bkos_brug/android/app/src/main/AndroidManifest.xml \
-             temp/android/app/src/main/AndroidManifest.xml
-
+          cp bkos_brug/android/app/src/main/AndroidManifest.xml temp/android/app/src/main/AndroidManifest.xml
       - name: Dependencies installeren
         run: flutter pub get
         working-directory: temp
-
-      - name: Gradle workaround voor flutter_blue_plus_android
-        # flutter_blue_plus_android gebruikt flutter.compileSdkVersion in zijn
-        # build.gradle, maar deze property bestaat niet in de nieuwe Kotlin DSL setup.
-        # We patchen de gecachte plugin-source direct met een vaste waarde.
+      - name: Gradle patch flutter_blue_plus_android
         run: |
-          FBPA=$(find ~/.pub-cache -path "*/flutter_blue_plus_android*/android/build.gradle" \
-                 -not -path "*/example/*" | head -1)
-          if [ -n "$FBPA" ]; then
-            echo "Patching: $FBPA"
-            sed -i 's/flutter\.compileSdkVersion/34/g' "$FBPA"
-            echo "Patch toegepast"
-          else
-            echo "flutter_blue_plus_android build.gradle niet gevonden"
-          fi
-
-      - name: Bouwen (debug APK)
+          F=$(find ~/.pub-cache -path "*/flutter_blue_plus_android*/android/build.gradle" ! -path "*/example/*" | head -1)
+          [ -n "$F" ] && sed -i 's/flutter\.compileSdkVersion/34/g' "$F" && echo "Patched $F"
+      - name: Bouwen APK
         run: flutter build apk --debug
         working-directory: temp
-
-      - name: APK uploaden als artifact
-        uses: actions/upload-artifact@v4
+      - name: APK hernoemen
+        run: cp temp/build/app/outputs/flutter-apk/app-debug.apk bkos-brug-android.apk
+      - uses: actions/upload-artifact@v4
         with:
           name: bkos-brug-android
-          path: temp/build/app/outputs/flutter-apk/app-debug.apk
+          path: bkos-brug-android.apk
           retention-days: 30
 
-  # ─── Web ─────────────────────────────────────────────────────────────────────
   web:
     name: Web Build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
-
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.24.3'
           channel: stable
           cache: true
-
-      - name: Project scaffolden + broncode kopiëren
+      - name: Scaffolden + broncode kopiëren
         run: |
           flutter create --org nl.bkos --project-name bkos_brug --platforms web temp
-          rm -rf temp/lib
-          cp -r bkos_brug/lib temp/lib
+          rm -rf temp/lib && cp -r bkos_brug/lib temp/lib
           cp bkos_brug/pubspec.yaml temp/pubspec.yaml
           cp bkos_brug/web/index.html temp/web/index.html
           cp bkos_brug/web/manifest.json temp/web/manifest.json
-
       - name: Dependencies installeren
         run: flutter pub get
         working-directory: temp
-
       - name: Web bouwen
-        run: flutter build web --release --base-href /
+        run: flutter build web --release --base-href /BKOS-Brug/
         working-directory: temp
-
-      - name: Web build uploaden als artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: bkos-brug-web
           path: temp/build/web/
           retention-days: 30
+      - name: Deployen naar GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: temp/build/web
+          branch: gh-pages
+          clean: true
 
-  # ─── Windows ─────────────────────────────────────────────────────────────────
   windows:
     name: Windows EXE
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.24.3'
           channel: stable
           cache: true
-
-      - name: Project scaffolden + broncode kopiëren
+      - name: Scaffolden + broncode kopiëren
         shell: pwsh
         run: |
           flutter create --org nl.bkos --project-name bkos_brug --platforms windows temp
           Remove-Item -Recurse -Force temp/lib
           Copy-Item -Recurse bkos_brug/lib temp/lib
           Copy-Item bkos_brug/pubspec.yaml temp/pubspec.yaml
-
       - name: Dependencies installeren
         run: flutter pub get
         working-directory: temp
-
       - name: Windows bouwen
         run: flutter build windows --release
         working-directory: temp
-
-      - name: Windows build zippen
+      - name: Zippen
         shell: pwsh
         run: Compress-Archive -Path temp/build/windows/x64/runner/Release/* -DestinationPath bkos-brug-windows.zip
-
-      - name: Windows build uploaden als artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: bkos-brug-windows
           path: bkos-brug-windows.zip
           retention-days: 30
 
-  # ─── iOS (macOS runner vereist) ───────────────────────────────────────────────
   ios:
     name: iOS Build
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.24.3'
           channel: stable
           cache: true
-
-      - name: Project scaffolden + broncode kopiëren
+      - name: Scaffolden + broncode kopiëren
         run: |
           flutter create --org nl.bkos --project-name bkos_brug --platforms ios temp
-          rm -rf temp/lib
-          cp -r bkos_brug/lib temp/lib
+          rm -rf temp/lib && cp -r bkos_brug/lib temp/lib
           cp bkos_brug/pubspec.yaml temp/pubspec.yaml
           cp bkos_brug/ios/Runner/Info.plist temp/ios/Runner/Info.plist
-
       - name: Dependencies installeren
         run: flutter pub get
         working-directory: temp
-
-      - name: iOS bouwen (zonder code signing)
+      - name: iOS bouwen (zonder signing)
         run: flutter build ios --no-codesign --release
         working-directory: temp
-
-      - name: iOS build uploaden als artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: bkos-brug-ios
           path: temp/build/ios/iphoneos/Runner.app
           retention-days: 30
+
+  release:
+    name: GitHub Release
+    runs-on: ubuntu-latest
+    needs: [android, windows]
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: bkos-brug-android
+          path: release-files/
+      - uses: actions/download-artifact@v4
+        with:
+          name: bkos-brug-windows
+          path: release-files/
+      - name: Release aanmaken
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete "latest-build" --yes 2>/dev/null || true
+          git push origin --delete "refs/tags/latest-build" 2>/dev/null || true
+          gh release create "latest-build" \
+            --title "Laatste build" \
+            --notes "Automatische build van \`${GITHUB_SHA::7}\`.
+
+**Windows installeren:**
+1. Download \`bkos-brug-windows.zip\`
+2. Uitpakken naar een map naar keuze
+3. Dubbelklik op \`bkos_brug.exe\`
+
+**Android installeren:**
+1. Download \`bkos-brug-android.apk\` op je Android telefoon
+2. Open het bestand (sta installatie van onbekende bronnen toe via Instellingen → Beveiliging)
+3. Installeer de app
+
+**iPhone/iPad:** Gebruik de web app via https://brennyc86.github.io/BKOS-Brug/ in Safari (vereist verbinding met hetzelfde WiFi als de BKOS)." \
+            --prerelease \
+            "release-files/bkos-brug-android.apk" \
+            "release-files/bkos-brug-windows.zip"
