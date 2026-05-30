@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: write
+
 jobs:
   android:
     name: Android APK
@@ -33,12 +36,11 @@ jobs:
       - name: Gradle patch flutter_blue_plus_android
         run: |
           F=$(find ~/.pub-cache -path "*/flutter_blue_plus_android*/android/build.gradle" ! -path "*/example/*" | head -1)
-          [ -n "$F" ] && sed -i 's/flutter\.compileSdkVersion/34/g' "$F" && echo "Patched $F"
+          [ -n "$F" ] && sed -i 's/flutter\.compileSdkVersion/34/g' "$F"
       - name: Bouwen APK
         run: flutter build apk --debug
         working-directory: temp
-      - name: APK hernoemen
-        run: cp temp/build/app/outputs/flutter-apk/app-debug.apk bkos-brug-android.apk
+      - run: cp temp/build/app/outputs/flutter-apk/app-debug.apk bkos-brug-android.apk
       - uses: actions/upload-artifact@v4
         with:
           name: bkos-brug-android
@@ -48,8 +50,6 @@ jobs:
   web:
     name: Web Build
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
@@ -77,8 +77,6 @@ jobs:
           retention-days: 30
       - name: Deployen naar GitHub Pages
         if: github.ref == 'refs/heads/main'
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
         run: |
           cd temp/build/web
           git init
@@ -86,7 +84,7 @@ jobs:
           git config user.name "GitHub Actions"
           git add -A
           git commit -m "Deploy web build"
-          git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/brennyc86/BKOS-Brug.git" HEAD:gh-pages
+          git push --force "https://x-access-token:${{ github.token }}@github.com/brennyc86/BKOS-Brug.git" HEAD:gh-pages
 
   windows:
     name: Windows EXE
@@ -153,8 +151,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: [android, windows]
     if: github.ref == 'refs/heads/main'
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -166,20 +162,14 @@ jobs:
           name: bkos-brug-windows
           path: release-files/
       - name: Release aanmaken
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete "latest-build" --yes 2>/dev/null || true
           git push origin --delete "refs/tags/latest-build" 2>/dev/null || true
-          NOTES="Automatische build van ${GITHUB_SHA::7}.
-
-Windows: download bkos-brug-windows.zip, uitpakken, dubbelklik bkos_brug.exe
-Android: download bkos-brug-android.apk en installeer (sta onbekende bronnen toe)
-iPhone: open https://brennyc86.github.io/BKOS-Brug/ in Safari"
-
           gh release create "latest-build" \
             --title "Laatste build" \
-            --notes "$NOTES" \
+            --notes "Build ${GITHUB_SHA::7}. Windows: bkos-brug-windows.zip uitpakken en bkos_brug.exe starten. Android: bkos-brug-android.apk installeren. iPhone: https://brennyc86.github.io/BKOS-Brug/ openen in Safari." \
             --prerelease \
             "release-files/bkos-brug-android.apk" \
             "release-files/bkos-brug-windows.zip"
+        env:
+          GH_TOKEN: ${{ github.token }}
