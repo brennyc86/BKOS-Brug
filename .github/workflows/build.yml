@@ -134,9 +134,8 @@ jobs:
           rm -rf temp/lib && cp -r bkos_brug/lib temp/lib
           cp bkos_brug/pubspec.yaml temp/pubspec.yaml
           cp bkos_brug/ios/Runner/Info.plist temp/ios/Runner/Info.plist
-          # bonsoir_darwin vereist iOS 14.0+ voor Bonjour/mDNS
-          sed -i '' "s/# platform :ios, '12.0'/platform :ios, '14.0'/" temp/ios/Podfile || true
-          sed -i '' "s/platform :ios, '[0-9.]*/platform :ios, '14.0'/" temp/ios/Podfile || true
+          # bonsoir_darwin vereist iOS 13.0+ — platform regel toevoegen bovenaan Podfile
+          echo "platform :ios, '14.0'" | cat - temp/ios/Podfile > /tmp/pf && mv /tmp/pf temp/ios/Podfile
       - name: Dependencies installeren
         run: flutter pub get
         working-directory: temp
