@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ main ]
 
+# Strategie: flutter create genereert de platform-boilerplate (Gradle, Xcode etc.),
+# daarna kopiëren we onze broncode erin. Zo heeft elk platform de juiste scaffolding.
+
 jobs:
   # ─── Android APK ─────────────────────────────────────────────────────────────
   android:
@@ -25,19 +28,28 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Project scaffolden + broncode kopiëren
+        run: |
+          flutter create --org nl.bkos --project-name bkos_brug --platforms android temp
+          rm -rf temp/lib
+          cp -r bkos_brug/lib temp/lib
+          cp bkos_brug/pubspec.yaml temp/pubspec.yaml
+          cp bkos_brug/android/app/src/main/AndroidManifest.xml \
+             temp/android/app/src/main/AndroidManifest.xml
+
       - name: Dependencies installeren
         run: flutter pub get
-        working-directory: bkos_brug
+        working-directory: temp
 
       - name: Bouwen (debug APK)
         run: flutter build apk --debug
-        working-directory: bkos_brug
+        working-directory: temp
 
       - name: APK uploaden als artifact
         uses: actions/upload-artifact@v4
         with:
           name: bkos-brug-android
-          path: bkos_brug/build/app/outputs/flutter-apk/app-debug.apk
+          path: temp/build/app/outputs/flutter-apk/app-debug.apk
           retention-days: 30
 
   # ─── Web ─────────────────────────────────────────────────────────────────────
@@ -53,19 +65,28 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Project scaffolden + broncode kopiëren
+        run: |
+          flutter create --org nl.bkos --project-name bkos_brug --platforms web temp
+          rm -rf temp/lib
+          cp -r bkos_brug/lib temp/lib
+          cp bkos_brug/pubspec.yaml temp/pubspec.yaml
+          cp bkos_brug/web/index.html temp/web/index.html
+          cp bkos_brug/web/manifest.json temp/web/manifest.json
+
       - name: Dependencies installeren
         run: flutter pub get
-        working-directory: bkos_brug
+        working-directory: temp
 
       - name: Web bouwen
         run: flutter build web --release --base-href /
-        working-directory: bkos_brug
+        working-directory: temp
 
       - name: Web build uploaden als artifact
         uses: actions/upload-artifact@v4
         with:
           name: bkos-brug-web
-          path: bkos_brug/build/web/
+          path: temp/build/web/
           retention-days: 30
 
   # ─── Windows ─────────────────────────────────────────────────────────────────
@@ -81,21 +102,65 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Project scaffolden + broncode kopiëren
+        shell: pwsh
+        run: |
+          flutter create --org nl.bkos --project-name bkos_brug --platforms windows temp
+          Remove-Item -Recurse -Force temp/lib
+          Copy-Item -Recurse bkos_brug/lib temp/lib
+          Copy-Item bkos_brug/pubspec.yaml temp/pubspec.yaml
+
       - name: Dependencies installeren
         run: flutter pub get
-        working-directory: bkos_brug
+        working-directory: temp
 
       - name: Windows bouwen
         run: flutter build windows --release
-        working-directory: bkos_brug
+        working-directory: temp
 
       - name: Windows build zippen
-        run: Compress-Archive -Path bkos_brug/build/windows/x64/runner/Release/* -DestinationPath bkos-brug-windows.zip
         shell: pwsh
+        run: Compress-Archive -Path temp/build/windows/x64/runner/Release/* -DestinationPath bkos-brug-windows.zip
 
       - name: Windows build uploaden als artifact
         uses: actions/upload-artifact@v4
         with:
           name: bkos-brug-windows
           path: bkos-brug-windows.zip
+          retention-days: 30
+
+  # ─── iOS (macOS runner vereist) ───────────────────────────────────────────────
+  ios:
+    name: iOS Build
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.6'
+          channel: stable
+          cache: true
+
+      - name: Project scaffolden + broncode kopiëren
+        run: |
+          flutter create --org nl.bkos --project-name bkos_brug --platforms ios temp
+          rm -rf temp/lib
+          cp -r bkos_brug/lib temp/lib
+          cp bkos_brug/pubspec.yaml temp/pubspec.yaml
+          cp bkos_brug/ios/Runner/Info.plist temp/ios/Runner/Info.plist
+
+      - name: Dependencies installeren
+        run: flutter pub get
+        working-directory: temp
+
+      - name: iOS bouwen (zonder code signing)
+        run: flutter build ios --no-codesign --release
+        working-directory: temp
+
+      - name: iOS build uploaden als artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bkos-brug-ios
+          path: temp/build/ios/iphoneos/Runner.app
           retention-days: 30
