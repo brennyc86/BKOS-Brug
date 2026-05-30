@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/bkos_model.dart';
+import '../theme.dart';
 
 class IoKanaalTegel extends StatelessWidget {
   final IoKanaal kanaal;
@@ -14,16 +15,16 @@ class IoKanaalTegel extends StatelessWidget {
     final isIngang = kanaal.isIngang;
 
     final achtergrond = isGeblokkeerd
-        ? Colors.orange.withOpacity(0.1)
+        ? kStatusBlok.withOpacity(0.08)
         : isAan
-            ? const Color(0xFF1A3A5C)
-            : const Color(0xFF1A2E42);
+            ? kGroenPrimair.withOpacity(0.18)
+            : kOppervlak;
 
     final randKleur = isGeblokkeerd
-        ? Colors.orange.withOpacity(0.4)
+        ? kStatusBlok.withOpacity(0.35)
         : isAan
-            ? const Color(0xFF5B8FB9)
-            : Colors.white12;
+            ? kGroenLicht.withOpacity(0.5)
+            : kBeigeRand;
 
     return GestureDetector(
       onTap: onToggle,
@@ -39,34 +40,32 @@ class IoKanaalTegel extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             // Naam + input dot
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    kanaal.naam,
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                    overflow: TextOverflow.ellipsis,
+            Row(children: [
+              Expanded(
+                child: Text(
+                  kanaal.naam,
+                  style: const TextStyle(
+                    fontSize: 12, fontWeight: FontWeight.w600, color: kBeige),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (isIngang)
+                Container(
+                  width: 8, height: 8,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: kanaal.input ? kStatusIngang : kBeigeDim,
                   ),
                 ),
-                if (isIngang)
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: kanaal.input ? Colors.greenAccent : Colors.white24,
-                    ),
-                  ),
-              ],
-            ),
-            // Status
+            ]),
+            // Status + knop
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 if (isIngang)
-                  _BadgeKlein('INGANG', Colors.blue)
+                  _BadgeKlein('INGANG', kStatusIngang)
                 else
-                  _StatusBadge(output: kanaal.output),
+                  _StatusLabel(output: kanaal.output),
                 if (!isIngang && !isGeblokkeerd)
                   _ToggleKnop(isAan: isAan, onToggle: onToggle),
               ],
@@ -78,35 +77,28 @@ class IoKanaalTegel extends StatelessWidget {
   }
 }
 
-class _StatusBadge extends StatelessWidget {
+class _StatusLabel extends StatelessWidget {
   final IoOutput output;
-  const _StatusBadge({required this.output});
+  const _StatusLabel({required this.output});
 
   @override
   Widget build(BuildContext context) {
     Color kleur;
     String tekst;
-
     switch (output) {
       case IoOutput.aan:
       case IoOutput.invAan:
-        kleur = Colors.greenAccent;
-        tekst = 'AAN';
+        kleur = kStatusAan; tekst = 'AAN';
       case IoOutput.geblokkeerd:
       case IoOutput.invGeblokkeerd:
-        kleur = Colors.orange;
-        tekst = 'BLOK';
+        kleur = kStatusBlok; tekst = 'BLOK';
       default:
-        kleur = Colors.white38;
-        tekst = 'UIT';
+        kleur = kStatusUit; tekst = 'UIT';
     }
-
     return Text(tekst,
         style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.bold,
-            color: kleur,
-            letterSpacing: 0.8));
+          fontSize: 11, fontWeight: FontWeight.bold,
+          color: kleur, letterSpacing: 0.8));
   }
 }
 
@@ -122,15 +114,15 @@ class _ToggleKnop extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: isAan
-              ? const Color(0xFF2E6DA4)
-              : Colors.white10,
+          color: isAan ? kGroenPrimair.withOpacity(0.4) : kOppervlakHoog,
           borderRadius: BorderRadius.circular(4),
+          border: Border.all(
+            color: isAan ? kGroenLicht.withOpacity(0.5) : kBeigeRand),
         ),
         child: Text(
           isAan ? 'UIT' : 'AAN',
-          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-        ),
+          style: const TextStyle(
+            fontSize: 11, fontWeight: FontWeight.bold, color: kBeige)),
       ),
     );
   }
@@ -146,14 +138,11 @@ class _BadgeKlein extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: kleur.withOpacity(0.15),
+        color: kleur.withOpacity(0.12),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(tekst,
-          style: TextStyle(
-              fontSize: 10,
-              color: kleur,
-              fontWeight: FontWeight.bold)),
+          style: TextStyle(fontSize: 10, color: kleur, fontWeight: FontWeight.bold)),
     );
   }
 }

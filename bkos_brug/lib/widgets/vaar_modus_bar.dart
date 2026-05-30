@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/bkos_model.dart';
+import '../theme.dart';
 
 class VaarModusBar extends StatelessWidget {
   final VaarModus modus;
@@ -18,43 +19,36 @@ class VaarModusBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFF0D1B2A),
+      color: kNavBar,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Row(
-        children: [
-          // Vaarmodus knoppen
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: VaarModus.values.map((m) => Padding(
-                  padding: const EdgeInsets.only(right: 6),
-                  child: _ModusKnop(
-                    label: _modusLabel(m),
-                    actief: modus == m,
-                    onTap: () => onModus(m),
-                  ),
-                )).toList(),
-              ),
+      child: Row(children: [
+        Expanded(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: VaarModus.values.map((m) => Padding(
+                padding: const EdgeInsets.only(right: 6),
+                child: _ModusKnop(
+                  label: _label(m),
+                  actief: modus == m,
+                  onTap: () => onModus(m),
+                ),
+              )).toList(),
             ),
           ),
-          // Verlichting
-          const SizedBox(width: 8),
-          _VerlichtingKnop(
-            verlichting: verlichting,
-            onChange: onVerlichting,
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(width: 8),
+        _VerlichtingKnop(verlichting: verlichting, onChange: onVerlichting),
+      ]),
     );
   }
 
-  String _modusLabel(VaarModus m) {
+  String _label(VaarModus m) {
     switch (m) {
-      case VaarModus.haven: return 'HAVEN';
+      case VaarModus.haven:  return 'HAVEN';
       case VaarModus.zeilen: return 'ZEILEN';
-      case VaarModus.motor: return 'MOTOR';
-      case VaarModus.anker: return 'ANKER';
+      case VaarModus.motor:  return 'MOTOR';
+      case VaarModus.anker:  return 'ANKER';
     }
   }
 }
@@ -71,17 +65,22 @@ class _ModusKnop extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          color: actief ? const Color(0xFF2E6DA4) : Colors.white10,
+          color: actief ? kGroenPrimair.withOpacity(0.35) : kOppervlakHoog,
           borderRadius: BorderRadius.circular(6),
-          border: actief ? Border.all(color: const Color(0xFF5B8FB9)) : null,
+          border: Border.all(
+            color: actief ? kGroenLicht.withOpacity(0.6) : kBeigeRand,
+            width: actief ? 1.5 : 1,
+          ),
         ),
         child: Text(label,
             style: TextStyle(
-                fontSize: 12,
-                fontWeight: actief ? FontWeight.bold : FontWeight.normal,
-                color: actief ? Colors.white : Colors.white60)),
+              fontSize: 12,
+              fontWeight: actief ? FontWeight.bold : FontWeight.normal,
+              color: actief ? kBeige : kBeigeZacht,
+              letterSpacing: 0.5,
+            )),
       ),
     );
   }
@@ -96,19 +95,15 @@ class _VerlichtingKnop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        // Cyclus: UIT → AAN → AUTO → UIT
-        final volgende = Verlichting.values[(verlichting.index + 1) % 3];
-        onChange(volgende);
-      },
+      onTap: () => onChange(Verlichting.values[(verlichting.index + 1) % 3]),
       child: Tooltip(
         message: _label,
         child: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: _kleur.withOpacity(0.15),
+            color: _kleur.withOpacity(0.12),
             borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: _kleur.withOpacity(0.4)),
+            border: Border.all(color: _kleur.withOpacity(0.35)),
           ),
           child: Icon(_icoon, color: _kleur, size: 18),
         ),
@@ -118,25 +113,25 @@ class _VerlichtingKnop extends StatelessWidget {
 
   String get _label {
     switch (verlichting) {
-      case Verlichting.uit: return 'Verlichting UIT';
-      case Verlichting.aan: return 'Verlichting AAN';
+      case Verlichting.uit:  return 'Verlichting UIT';
+      case Verlichting.aan:  return 'Verlichting AAN';
       case Verlichting.auto_: return 'Verlichting AUTO';
     }
   }
 
   IconData get _icoon {
     switch (verlichting) {
-      case Verlichting.uit: return Icons.lightbulb_outline;
-      case Verlichting.aan: return Icons.lightbulb;
+      case Verlichting.uit:   return Icons.lightbulb_outline;
+      case Verlichting.aan:   return Icons.lightbulb;
       case Verlichting.auto_: return Icons.brightness_auto;
     }
   }
 
   Color get _kleur {
     switch (verlichting) {
-      case Verlichting.uit: return Colors.white38;
-      case Verlichting.aan: return Colors.amber;
-      case Verlichting.auto_: return Colors.lightBlue;
+      case Verlichting.uit:   return kBeigeDim;
+      case Verlichting.aan:   return kStatusBlok; // amber
+      case Verlichting.auto_: return kStatusIngang; // blauw-groen
     }
   }
 }

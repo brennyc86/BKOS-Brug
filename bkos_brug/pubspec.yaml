@@ -23,6 +23,9 @@ dependencies:
   # BLE (niet beschikbaar op web platform) — v2.x vereist voor AGP 8.x compatibiliteit
   flutter_blue_plus: ^2.3.0
 
+  # mDNS netwerk discovery (niet op web) — vindt BKOS apparaten op WiFi
+  bonsoir: ^5.1.0
+
   # Lokale opslag (laatste verbinding onthouden)
   shared_preferences: ^2.2.2
 

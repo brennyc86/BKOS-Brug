@@ -49,7 +49,7 @@ class BkosService extends ChangeNotifier {
 
   // ─── Verbinden ─────────────────────────────────────────────────────────────
 
-  Future<void> verbindWebSocket(String ip) async {
+  Future<void> verbindWebSocket(String ip, {int poort = 8080}) async {
     _verbindingBezig = true;
     _foutmelding = '';
     notifyListeners();
@@ -58,7 +58,7 @@ class BkosService extends ChangeNotifier {
     await prefs.setString('laatste_ip', ip);
 
     try {
-      _ws = WebSocketChannel.connect(Uri.parse('ws://$ip:8080/bkos'));
+      _ws = WebSocketChannel.connect(Uri.parse('ws://$ip:$poort/bkos'));
       await _ws!.ready.timeout(const Duration(seconds: 5));
 
       _ws!.stream.listen(
@@ -155,6 +155,7 @@ class BkosService extends ChangeNotifier {
         case 'info':
           _info = BkosInfo(
             naam: msg['naam'] ?? '',
+            bootnaam: msg['boot'] ?? '',
             versie: msg['ver'] ?? '',
             mac: msg['mac'] ?? '',
             netModus: msg['net_modus'] ?? 0,
