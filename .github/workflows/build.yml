@@ -166,21 +166,15 @@ jobs:
         run: |
           gh release delete "latest-build" --yes 2>/dev/null || true
           git push origin --delete "refs/tags/latest-build" 2>/dev/null || true
+          NOTES="Automatische build van ${GITHUB_SHA::7}.
+
+Windows: download bkos-brug-windows.zip, uitpakken, dubbelklik bkos_brug.exe
+Android: download bkos-brug-android.apk en installeer (sta onbekende bronnen toe)
+iPhone: open https://brennyc86.github.io/BKOS-Brug/ in Safari"
+
           gh release create "latest-build" \
             --title "Laatste build" \
-            --notes "Automatische build van \`${GITHUB_SHA::7}\`.
-
-**Windows installeren:**
-1. Download \`bkos-brug-windows.zip\`
-2. Uitpakken naar een map naar keuze
-3. Dubbelklik op \`bkos_brug.exe\`
-
-**Android installeren:**
-1. Download \`bkos-brug-android.apk\` op je Android telefoon
-2. Open het bestand (sta installatie van onbekende bronnen toe via Instellingen → Beveiliging)
-3. Installeer de app
-
-**iPhone/iPad:** Gebruik de web app via https://brennyc86.github.io/BKOS-Brug/ in Safari (vereist verbinding met hetzelfde WiFi als de BKOS)." \
+            --notes "$NOTES" \
             --prerelease \
             "release-files/bkos-brug-android.apk" \
             "release-files/bkos-brug-windows.zip"
