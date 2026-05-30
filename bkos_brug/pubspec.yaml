@@ -20,8 +20,8 @@ dependencies:
   # WebSocket verbinding
   web_socket_channel: ^2.4.0
 
-  # BLE (niet beschikbaar op web platform)
-  flutter_blue_plus: ^1.29.4
+  # BLE (niet beschikbaar op web platform) — v2.x vereist voor AGP 8.x compatibiliteit
+  flutter_blue_plus: ^2.3.0
 
   # Lokale opslag (laatste verbinding onthouden)
   shared_preferences: ^2.2.2
