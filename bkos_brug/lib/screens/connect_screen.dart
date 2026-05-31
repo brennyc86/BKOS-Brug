@@ -161,13 +161,22 @@ class _ConnectScreenState extends State<ConnectScreen> {
   }
 
   void _startBleScan() {
+    const bkosUuid = '424b4f53-0000-1000-8000-00805f9b34fb';
     setState(() { _bleScannen = true; _bleResultaten = []; });
     FlutterBluePlus.startScan(
       timeout: const Duration(seconds: 10),
-      withServices: [Guid('424b4f53-0000-1000-8000-00805f9b34fb')],
+      withServices: [Guid(bkosUuid)],
     );
     FlutterBluePlus.scanResults.listen((results) {
-      if (mounted) setState(() => _bleResultaten = results);
+      if (!mounted) return;
+      // Filter: alleen apparaten met BKOS naam of met de BKOS service UUID
+      final bkosResultaten = results.where((r) {
+        final naam = r.device.platformName.toLowerCase();
+        if (naam.contains('bkos')) return true;
+        final uuids = r.advertisementData.serviceUuids.map((g) => g.str128.toLowerCase());
+        return uuids.contains(bkosUuid);
+      }).toList();
+      setState(() => _bleResultaten = bkosResultaten);
     });
     Future.delayed(const Duration(seconds: 10), () {
       if (mounted) setState(() => _bleScannen = false);
