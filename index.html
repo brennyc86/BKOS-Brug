@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base href="/BKOS-Brug/">
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="BKOS Brug — boordcomputer paneel">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="BKOS Brug">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+  <title>BKOS Brug</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <style>
+    body { background-color: #0D1B2A; margin: 0; }
+  </style>
+</head>
+<body>
+  <!-- Een browser kan geen mDNS-zoektocht doen en een https-pagina mag geen ws:// openen:
+       zoeken naar boordcomputers kan hier alleen via Bluetooth (BKOS-app) of door op de
+       boordcomputer zelf te openen (bkos.local). -->
+  <div id="bkosSnelkoppeling" style="position:fixed;left:0;right:0;bottom:0;z-index:99999;
+       background:#12263a;border-top:1px solid #2a4560;padding:8px 12px;font:14px sans-serif;
+       display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:center;color:#cfe3f5">
+    <span>Boordcomputer zoeken:</span>
+    <a href="https://brennyc86.github.io/BKOS-NUI/app/" style="color:#4fc3f7;font-weight:bold">Via Bluetooth (ook buiten je netwerk)</a>
+    <a href="http://bkos.local/" style="color:#4fc3f7;font-weight:bold">Via WiFi: bkos.local</a>
+    <a href="#" onclick="document.getElementById('bkosSnelkoppeling').remove();return false" style="color:#8aa;text-decoration:none">&#10005;</a>
+  </div>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
